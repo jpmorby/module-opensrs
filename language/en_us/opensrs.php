@@ -59,6 +59,19 @@ $lang['Opensrs.tab_nameservers.title'] = 'Name Servers';
 $lang['Opensrs.tab_nameserver.field_ns'] = 'Name Server %1$s'; // %1$s is the name server number
 $lang['Opensrs.tab_nameservers.field_submit'] = 'Update Name Servers';
 
+$lang['Opensrs.tab_url_forwarding.title'] = 'URL Forwarding';
+$lang['Opensrs.tab_url_forwarding.field_subdomain'] = 'Subdomain';
+$lang['Opensrs.tab_url_forwarding.field_destination'] = 'Destination URL';
+$lang['Opensrs.tab_url_forwarding.field_redirect_type'] = 'Redirect Type';
+$lang['Opensrs.tab_url_forwarding.redirect_301'] = 'Permanent (301)';
+$lang['Opensrs.tab_url_forwarding.redirect_302'] = 'Temporary (302)';
+$lang['Opensrs.tab_url_forwarding.redirect_frame'] = 'Frame (Masked)';
+$lang['Opensrs.tab_url_forwarding.field_add'] = 'Add Forwarding Rule';
+$lang['Opensrs.tab_url_forwarding.field_options'] = 'Options';
+$lang['Opensrs.tab_url_forwarding.field_delete'] = 'Delete';
+$lang['Opensrs.tab_url_forwarding.add_record'] = 'Add URL Forwarding Rule';
+$lang['Opensrs.tab_url_forwarding.no_records'] = 'There are no URL forwarding rules.';
+
 $lang['Opensrs.tab_settings.title'] = 'Settings';
 $lang['Opensrs.tab_settings.field_registrar_lock'] = 'Registrar Lock';
 $lang['Opensrs.tab_settings.field_registrar_lock_yes'] = 'Set the registrar lock. Recommended to prevent unauthorized transfer.';
