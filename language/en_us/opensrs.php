@@ -59,6 +59,19 @@ $lang['Opensrs.tab_nameservers.title'] = 'Name Servers';
 $lang['Opensrs.tab_nameserver.field_ns'] = 'Name Server %1$s'; // %1$s is the name server number
 $lang['Opensrs.tab_nameservers.field_submit'] = 'Update Name Servers';
 
+$lang['Opensrs.tab_dns.title'] = 'DNS Records';
+$lang['Opensrs.tab_dns.field_type'] = 'Type';
+$lang['Opensrs.tab_dns.field_subdomain'] = 'Host';
+$lang['Opensrs.tab_dns.field_ip_address'] = 'Value';
+$lang['Opensrs.tab_dns.field_priority'] = 'Priority';
+$lang['Opensrs.tab_dns.field_ttl'] = 'TTL';
+$lang['Opensrs.tab_dns.field_options'] = 'Options';
+$lang['Opensrs.tab_dns.field_add'] = 'Add Record';
+$lang['Opensrs.tab_dns.field_delete'] = 'Delete';
+$lang['Opensrs.tab_dns.field_reset'] = 'Reset DNS Zone';
+$lang['Opensrs.tab_dns.add_record'] = 'Add DNS Record';
+$lang['Opensrs.tab_dns.no_records'] = 'There are no DNS records.';
+
 $lang['Opensrs.tab_url_forwarding.title'] = 'URL Forwarding';
 $lang['Opensrs.tab_url_forwarding.field_subdomain'] = 'Subdomain';
 $lang['Opensrs.tab_url_forwarding.field_destination'] = 'Destination URL';
