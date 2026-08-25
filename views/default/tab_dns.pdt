@@ -7,8 +7,10 @@
             <tr>
                 <th><span><?php $this->_('Opensrs.tab_dns.field_type'); ?></span></th>
                 <th><span><?php $this->_('Opensrs.tab_dns.field_subdomain'); ?></span></th>
-                <th><span><?php $this->_('Opensrs.tab_dns.field_ip_address'); ?></span></th>
+                <th><span><?php $this->_('Opensrs.tab_dns.field_value'); ?></span></th>
                 <th><span><?php $this->_('Opensrs.tab_dns.field_priority'); ?></span></th>
+                <th><span><?php $this->_('Opensrs.tab_dns.field_weight'); ?></span></th>
+                <th><span><?php $this->_('Opensrs.tab_dns.field_port'); ?></span></th>
                 <th><span><?php $this->_('Opensrs.tab_dns.field_ttl'); ?></span></th>
                 <th><span><?php $this->_('Opensrs.tab_dns.field_options'); ?></span></th>
             </tr>
@@ -18,8 +20,10 @@
             <tr>
                 <td><?php echo $this->Html->safe($record['record_type'] ?? ''); ?></td>
                 <td><?php echo $this->Html->safe($record['subdomain'] ?? ''); ?></td>
-                <td><?php echo $this->Html->safe($record['ip_address'] ?? ''); ?></td>
+                <td><?php echo $this->Html->safe($record['value'] ?? ''); ?></td>
                 <td><?php echo $this->Html->safe($record['priority'] ?? ''); ?></td>
+                <td><?php echo $this->Html->safe($record['weight'] ?? ''); ?></td>
+                <td><?php echo $this->Html->safe($record['port'] ?? ''); ?></td>
                 <td><?php echo $this->Html->safe($record['ttl'] ?? ''); ?></td>
                 <td>
                     <?php
@@ -71,7 +75,7 @@
     );
     ?>
 </div>
-<div class="mb-3">
+<div class="mb-3" id="field-ip_address">
     <?php
     $this->Form->label($this->_('Opensrs.tab_dns.field_ip_address', true), 'ip_address', ['class' => 'form-label']);
     $this->Form->fieldText(
@@ -81,13 +85,67 @@
     );
     ?>
 </div>
-<div class="mb-3">
+<div class="mb-3" id="field-ipv6_address">
+    <?php
+    $this->Form->label(
+        $this->_('Opensrs.tab_dns.field_ipv6_address', true),
+        'ipv6_address',
+        ['class' => 'form-label'],
+    );
+    $this->Form->fieldText(
+        'ipv6_address',
+        ($vars->ipv6_address ?? null),
+        ['id' => 'ipv6_address', 'class' => 'form-control'],
+    );
+    ?>
+</div>
+<div class="mb-3" id="field-hostname">
+    <?php
+    $this->Form->label($this->_('Opensrs.tab_dns.field_hostname', true), 'hostname', ['class' => 'form-label']);
+    $this->Form->fieldText(
+        'hostname',
+        ($vars->hostname ?? null),
+        ['id' => 'hostname', 'class' => 'form-control'],
+    );
+    ?>
+</div>
+<div class="mb-3" id="field-text">
+    <?php
+    $this->Form->label($this->_('Opensrs.tab_dns.field_text', true), 'text', ['class' => 'form-label']);
+    $this->Form->fieldText(
+        'text',
+        ($vars->text ?? null),
+        ['id' => 'text', 'class' => 'form-control'],
+    );
+    ?>
+</div>
+<div class="mb-3" id="field-priority">
     <?php
     $this->Form->label($this->_('Opensrs.tab_dns.field_priority', true), 'priority', ['class' => 'form-label']);
     $this->Form->fieldText(
         'priority',
         ($vars->priority ?? null),
         ['id' => 'priority', 'class' => 'form-control'],
+    );
+    ?>
+</div>
+<div class="mb-3" id="field-weight">
+    <?php
+    $this->Form->label($this->_('Opensrs.tab_dns.field_weight', true), 'weight', ['class' => 'form-label']);
+    $this->Form->fieldText(
+        'weight',
+        ($vars->weight ?? null),
+        ['id' => 'weight', 'class' => 'form-control'],
+    );
+    ?>
+</div>
+<div class="mb-3" id="field-port">
+    <?php
+    $this->Form->label($this->_('Opensrs.tab_dns.field_port', true), 'port', ['class' => 'form-label']);
+    $this->Form->fieldText(
+        'port',
+        ($vars->port ?? null),
+        ['id' => 'port', 'class' => 'form-control'],
     );
     ?>
 </div>
@@ -112,3 +170,33 @@
     'class' => 'btn btn-outline-danger',
 ]); ?>
 <?php $this->Form->end(); ?>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        var typeSelect = document.getElementById('type');
+        var fieldsByType = {
+            'A': ['field-ip_address'],
+            'AAAA': ['field-ipv6_address'],
+            'CNAME': ['field-hostname'],
+            'MX': ['field-hostname', 'field-priority'],
+            'SRV': ['field-hostname', 'field-priority', 'field-weight', 'field-port'],
+            'TXT': ['field-text']
+        };
+        var allFieldIds = ['field-ip_address', 'field-ipv6_address', 'field-hostname', 'field-text', 'field-priority', 'field-weight', 'field-port'];
+
+        function updateFields() {
+            var visible = fieldsByType[typeSelect.value] || [];
+            allFieldIds.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.style.display = visible.indexOf(id) !== -1 ? '' : 'none';
+                }
+            });
+        }
+
+        if (typeSelect) {
+            typeSelect.addEventListener('change', updateFields);
+            updateFields();
+        }
+    });
+</script>

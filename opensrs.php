@@ -1385,21 +1385,36 @@ class Opensrs extends RegistrarModule
                         $zone = $zone_response->response();
                         $records = $zone->attributes['records'] ?? [];
 
-                        // Add the new record
+                        // Build the type-specific record fields
+                        $type = strtoupper($post['type'] ?? 'A');
                         $new_record = [
-                            'type' => $post['type'] ?? 'A',
                             'subdomain' => $post['subdomain'] ?? '',
-                            'ip_address' => $post['ip_address'] ?? '',
-                            'priority' => $post['priority'] ?? '',
                             'ttl' => $post['ttl'] ?? '3600'
                         ];
 
-                        // Build the records for setDnsZone
-                        $type_key = strtolower($new_record['type']);
-                        if (!isset($records[$type_key]) || !is_array($records[$type_key])) {
-                            $records[$type_key] = [];
+                        if ($type == 'A') {
+                            $new_record['ip_address'] = $post['ip_address'] ?? '';
+                        } elseif ($type == 'AAAA') {
+                            $new_record['ipv6_address'] = $post['ipv6_address'] ?? '';
+                        } elseif ($type == 'CNAME') {
+                            $new_record['hostname'] = $post['hostname'] ?? '';
+                        } elseif ($type == 'MX') {
+                            $new_record['hostname'] = $post['hostname'] ?? '';
+                            $new_record['priority'] = $post['priority'] ?? '';
+                        } elseif ($type == 'SRV') {
+                            $new_record['hostname'] = $post['hostname'] ?? '';
+                            $new_record['priority'] = $post['priority'] ?? '';
+                            $new_record['weight'] = $post['weight'] ?? '';
+                            $new_record['port'] = $post['port'] ?? '';
+                        } elseif ($type == 'TXT') {
+                            $new_record['text'] = $post['text'] ?? '';
                         }
-                        $records[$type_key][] = $new_record;
+
+                        // Build the records for setDnsZone, preserving the API's uppercase type keys
+                        if (!isset($records[$type]) || !is_array($records[$type])) {
+                            $records[$type] = [];
+                        }
+                        $records[$type][] = $new_record;
 
                         $response = $dns->setDnsZone([
                             'domain' => $fields->domain,
@@ -1416,7 +1431,7 @@ class Opensrs extends RegistrarModule
                         $zone = $zone_response->response();
                         $records = $zone->attributes['records'] ?? [];
 
-                        $delete_type = strtolower($post['record_type'] ?? '');
+                        $delete_type = strtoupper($post['record_type'] ?? '');
                         $delete_index = (int)($post['record_index'] ?? -1);
 
                         if (isset($records[$delete_type][$delete_index])) {
@@ -1447,13 +1462,26 @@ class Opensrs extends RegistrarModule
             $zone = $zone_response->response();
             $raw_records = $zone->attributes['records'] ?? [];
 
-            // Flatten records into a single array for display
+            // Flatten records into a single array for display, preserving the API's uppercase type keys
             foreach ($raw_records as $type => $type_records) {
                 if (is_array($type_records)) {
                     foreach ($type_records as $index => $record) {
                         if (is_array($record)) {
-                            $record['record_type'] = strtoupper($type);
+                            $record['record_type'] = $type;
                             $record['record_index'] = $index;
+
+                            if ($type == 'A') {
+                                $record['value'] = $record['ip_address'] ?? '';
+                            } elseif ($type == 'AAAA') {
+                                $record['value'] = $record['ipv6_address'] ?? '';
+                            } elseif (in_array($type, ['CNAME', 'MX', 'SRV'])) {
+                                $record['value'] = $record['hostname'] ?? '';
+                            } elseif ($type == 'TXT') {
+                                $record['value'] = $record['text'] ?? '';
+                            } else {
+                                $record['value'] = '';
+                            }
+
                             $records[] = $record;
                         }
                     }
@@ -1469,8 +1497,7 @@ class Opensrs extends RegistrarModule
             'CNAME' => 'CNAME',
             'MX' => 'MX',
             'TXT' => 'TXT',
-            'SRV' => 'SRV',
-            'NS' => 'NS'
+            'SRV' => 'SRV'
         ]);
         $this->view->setDefaultView('components' . DS . 'modules' . DS . 'opensrs' . DS);
 

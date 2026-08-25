@@ -1,4 +1,3 @@
-
     <div class="row panel-fix">
         <div class="col-md-12">
             <h4><?php $this->_('Opensrs.tab_dns.title'); ?></h4>
@@ -10,8 +9,10 @@
                         <tr>
                             <th><?php $this->_('Opensrs.tab_dns.field_type'); ?></th>
                             <th><?php $this->_('Opensrs.tab_dns.field_subdomain'); ?></th>
-                            <th><?php $this->_('Opensrs.tab_dns.field_ip_address'); ?></th>
+                            <th><?php $this->_('Opensrs.tab_dns.field_value'); ?></th>
                             <th><?php $this->_('Opensrs.tab_dns.field_priority'); ?></th>
+                            <th><?php $this->_('Opensrs.tab_dns.field_weight'); ?></th>
+                            <th><?php $this->_('Opensrs.tab_dns.field_port'); ?></th>
                             <th><?php $this->_('Opensrs.tab_dns.field_ttl'); ?></th>
                             <th></th>
                         </tr>
@@ -21,8 +22,10 @@
                         <tr>
                             <td><?php echo $this->Html->safe($record['record_type'] ?? ''); ?></td>
                             <td><?php echo $this->Html->safe($record['subdomain'] ?? ''); ?></td>
-                            <td><?php echo $this->Html->safe($record['ip_address'] ?? ''); ?></td>
+                            <td><?php echo $this->Html->safe($record['value'] ?? ''); ?></td>
                             <td><?php echo $this->Html->safe($record['priority'] ?? ''); ?></td>
+                            <td><?php echo $this->Html->safe($record['weight'] ?? ''); ?></td>
+                            <td><?php echo $this->Html->safe($record['port'] ?? ''); ?></td>
                             <td><?php echo $this->Html->safe($record['ttl'] ?? ''); ?></td>
                             <td>
                                 <?php
@@ -71,7 +74,7 @@
                 );
                 ?>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="field-ip_address">
                 <?php
                 $this->Form->label($this->_('Opensrs.tab_dns.field_ip_address', true), 'ip_address');
                 $this->Form->fieldText(
@@ -81,13 +84,63 @@
                 );
                 ?>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="field-ipv6_address">
+                <?php
+                $this->Form->label($this->_('Opensrs.tab_dns.field_ipv6_address', true), 'ipv6_address');
+                $this->Form->fieldText(
+                    'ipv6_address',
+                    ($vars->ipv6_address ?? null),
+                    ['id' => 'ipv6_address', 'class' => 'form-control'],
+                );
+                ?>
+            </div>
+            <div class="form-group" id="field-hostname">
+                <?php
+                $this->Form->label($this->_('Opensrs.tab_dns.field_hostname', true), 'hostname');
+                $this->Form->fieldText(
+                    'hostname',
+                    ($vars->hostname ?? null),
+                    ['id' => 'hostname', 'class' => 'form-control'],
+                );
+                ?>
+            </div>
+            <div class="form-group" id="field-text">
+                <?php
+                $this->Form->label($this->_('Opensrs.tab_dns.field_text', true), 'text');
+                $this->Form->fieldText(
+                    'text',
+                    ($vars->text ?? null),
+                    ['id' => 'text', 'class' => 'form-control'],
+                );
+                ?>
+            </div>
+            <div class="form-group" id="field-priority">
                 <?php
                 $this->Form->label($this->_('Opensrs.tab_dns.field_priority', true), 'priority');
                 $this->Form->fieldText(
                     'priority',
                     ($vars->priority ?? null),
                     ['id' => 'priority', 'class' => 'form-control'],
+                );
+                ?>
+            </div>
+            <div class="form-group" id="field-weight">
+                <?php
+                $this->Form->label($this->_('Opensrs.tab_dns.field_weight', true), 'weight');
+                $this->Form->fieldText(
+                    'weight',
+                    ($vars->weight ?? null),
+                    ['id' => 'weight', 'class' => 'form-control'],
+                );
+                ?>
+            </div>
+            <div class="form-group" id="field-port">
+                <?php
+                $this->Form->label($this->_('Opensrs.tab_dns.field_port', true), 'port');
+                $this->Form->fieldText(
+                    'port',
+                    ($vars->port ?? null),
+                    ['id' => 'port', 'class' => 'form-control'],
                 );
                 ?>
             </div>
@@ -114,3 +167,33 @@
             <?php $this->Form->end(); ?>
         </div>
     </div>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        var typeSelect = document.getElementById('type');
+        var fieldsByType = {
+            'A': ['field-ip_address'],
+            'AAAA': ['field-ipv6_address'],
+            'CNAME': ['field-hostname'],
+            'MX': ['field-hostname', 'field-priority'],
+            'SRV': ['field-hostname', 'field-priority', 'field-weight', 'field-port'],
+            'TXT': ['field-text']
+        };
+        var allFieldIds = ['field-ip_address', 'field-ipv6_address', 'field-hostname', 'field-text', 'field-priority', 'field-weight', 'field-port'];
+
+        function updateFields() {
+            var visible = fieldsByType[typeSelect.value] || [];
+            allFieldIds.forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.style.display = visible.indexOf(id) !== -1 ? '' : 'none';
+                }
+            });
+        }
+
+        if (typeSelect) {
+            typeSelect.addEventListener('change', updateFields);
+            updateFields();
+        }
+    });
+</script>
