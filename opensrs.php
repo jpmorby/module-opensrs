@@ -1327,7 +1327,7 @@ class Opensrs extends RegistrarModule
      */
     public function checkTransferAvailability($domain, $module_row_id = null)
     {
-        $row = $this->getModuleRowOrFail($module_row_id);
+        $row = $this->getModuleRow($module_row_id);
         if (!$row) {
             return false;
         }
