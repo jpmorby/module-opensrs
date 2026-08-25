@@ -61,11 +61,11 @@ $lang['Opensrs.tab_nameservers.field_submit'] = 'Update Name Servers';
 
 $lang['Opensrs.tab_url_forwarding.title'] = 'URL Forwarding';
 $lang['Opensrs.tab_url_forwarding.field_subdomain'] = 'Subdomain';
-$lang['Opensrs.tab_url_forwarding.field_destination'] = 'Destination URL';
-$lang['Opensrs.tab_url_forwarding.field_redirect_type'] = 'Redirect Type';
-$lang['Opensrs.tab_url_forwarding.redirect_301'] = 'Permanent (301)';
-$lang['Opensrs.tab_url_forwarding.redirect_302'] = 'Temporary (302)';
-$lang['Opensrs.tab_url_forwarding.redirect_frame'] = 'Frame (Masked)';
+$lang['Opensrs.tab_url_forwarding.field_destination_url'] = 'Destination URL';
+$lang['Opensrs.tab_url_forwarding.field_enabled'] = 'Enabled';
+$lang['Opensrs.tab_url_forwarding.field_masked'] = 'Mask Destination URL';
+$lang['Opensrs.tab_url_forwarding.value_yes'] = 'Yes';
+$lang['Opensrs.tab_url_forwarding.value_no'] = 'No';
 $lang['Opensrs.tab_url_forwarding.field_add'] = 'Add Forwarding Rule';
 $lang['Opensrs.tab_url_forwarding.field_options'] = 'Options';
 $lang['Opensrs.tab_url_forwarding.field_delete'] = 'Delete';

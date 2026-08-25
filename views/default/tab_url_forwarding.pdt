@@ -6,8 +6,9 @@
         <thead>
             <tr>
                 <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_subdomain'); ?></span></th>
-                <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_destination'); ?></span></th>
-                <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_redirect_type'); ?></span></th>
+                <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_destination_url'); ?></span></th>
+                <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_enabled'); ?></span></th>
+                <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_masked'); ?></span></th>
                 <th><span><?php $this->_('Opensrs.tab_url_forwarding.field_options'); ?></span></th>
             </tr>
         </thead>
@@ -15,8 +16,9 @@
             <?php foreach ($forwarding_records as $record) { ?>
             <tr>
                 <td><?php echo $this->Html->safe($record['subdomain'] ?? '@'); ?></td>
-                <td><?php echo $this->Html->safe($record['ip_address'] ?? ''); ?></td>
-                <td><?php echo $this->Html->safe($record['type'] ?? ''); ?></td>
+                <td><?php echo $this->Html->safe($record['destination_url'] ?? ''); ?></td>
+                <td><?php echo !empty($record['enabled']) ? $this->_('Opensrs.tab_url_forwarding.value_yes', true) : $this->_('Opensrs.tab_url_forwarding.value_no', true); ?></td>
+                <td><?php echo !empty($record['masked']) ? $this->_('Opensrs.tab_url_forwarding.value_yes', true) : $this->_('Opensrs.tab_url_forwarding.value_no', true); ?></td>
                 <td>
                     <?php
                     $this->Form->create(null, ['class' => 'd-inline']);
@@ -62,29 +64,44 @@
 <div class="mb-3">
     <?php
     $this->Form->label(
-        $this->_('Opensrs.tab_url_forwarding.field_destination', true),
-        'destination',
+        $this->_('Opensrs.tab_url_forwarding.field_destination_url', true),
+        'destination_url',
         ['class' => 'form-label'],
     );
     $this->Form->fieldText(
-        'destination',
-        ($vars->destination ?? null),
-        ['id' => 'destination', 'class' => 'form-control'],
+        'destination_url',
+        ($vars->destination_url ?? null),
+        ['id' => 'destination_url', 'class' => 'form-control'],
     );
     ?>
 </div>
-<div class="mb-3">
+<div class="mb-3 form-check">
     <?php
-    $this->Form->label(
-        $this->_('Opensrs.tab_url_forwarding.field_redirect_type', true),
-        'redirect_type',
-        ['class' => 'form-label'],
+    $this->Form->fieldCheckbox(
+        'enabled',
+        '1',
+        ($vars->enabled ?? true),
+        ['id' => 'enabled', 'class' => 'form-check-input'],
     );
-    $this->Form->fieldSelect(
-        'redirect_type',
-        ($redirect_types ?? []),
-        ($vars->redirect_type ?? '301'),
-        ['id' => 'redirect_type', 'class' => 'form-select'],
+    $this->Form->label(
+        $this->_('Opensrs.tab_url_forwarding.field_enabled', true),
+        'enabled',
+        ['class' => 'form-check-label'],
+    );
+    ?>
+</div>
+<div class="mb-3 form-check">
+    <?php
+    $this->Form->fieldCheckbox(
+        'masked',
+        '1',
+        ($vars->masked ?? false),
+        ['id' => 'masked', 'class' => 'form-check-input'],
+    );
+    $this->Form->label(
+        $this->_('Opensrs.tab_url_forwarding.field_masked', true),
+        'masked',
+        ['class' => 'form-check-label'],
     );
     ?>
 </div>

@@ -25,7 +25,19 @@ class OpensrsDomainsForwarding
     }
 
     /**
-     * Gets domain forwarding settings for the specified domain.
+     * Enables domain forwarding for the specified domain.
+     *
+     * @param array $vars An array of input params including:
+     *  - domain The domain name
+     * @return OpensrsResponse The response object
+     */
+    public function createDomainForwarding(array $vars): OpensrsResponse
+    {
+        return $this->api->submit('create_domain_forwarding', $vars);
+    }
+
+    /**
+     * Gets the domain forwarding records configured for the specified domain.
      *
      * @param array $vars An array of input params including:
      *  - domain The domain name
@@ -33,42 +45,28 @@ class OpensrsDomainsForwarding
      */
     public function getDomainForwarding(array $vars): OpensrsResponse
     {
-        return $this->api->submit('get', array_merge($vars, ['type' => 'forwarding_email']));
+        return $this->api->submit('get_domain_forwarding', $vars);
     }
 
     /**
-     * Sets URL forwarding for the specified domain.
+     * Sets the domain forwarding records for the specified domain.
      *
      * @param array $vars An array of input params including:
      *  - domain The domain name
-     *  - forwarding_uri The destination URL
+     *  - forwarding An array of forwarding records, each containing:
+     *      - subdomain The third level of the domain name, such as www or ftp
+     *      - destination_url The destination URL
+     *      - enabled Whether the record is enabled (1) or not (0)
+     *      - masked Whether the destination URL should be masked (1) or not (0)
      * @return OpensrsResponse The response object
      */
     public function setDomainForwarding(array $vars): OpensrsResponse
     {
-        return $this->api->submit('modify', array_merge($vars, [
-            'data' => 'forwarding_email',
-            'affect_domains' => '0'
-        ]));
+        return $this->api->submit('set_domain_forwarding', $vars);
     }
 
     /**
-     * Creates URL forwarding for the specified domain via DNS zone.
-     *
-     * @param array $vars An array of input params including:
-     *  - source The source subdomain or @ for root
-     *  - destination The destination URL
-     *  - type The redirect type (301, 302, or frame)
-     *  - domain The domain name
-     * @return OpensrsResponse The response object
-     */
-    public function createDomainForwarding(array $vars): OpensrsResponse
-    {
-        return $this->api->submit('set_dns_zone', $vars);
-    }
-
-    /**
-     * Deletes URL forwarding for the specified domain.
+     * Deletes domain forwarding for the specified domain.
      *
      * @param array $vars An array of input params including:
      *  - domain The domain name
@@ -76,6 +74,6 @@ class OpensrsDomainsForwarding
      */
     public function deleteDomainForwarding(array $vars): OpensrsResponse
     {
-        return $this->api->submit('set_dns_zone', $vars);
+        return $this->api->submit('delete_domain_forwarding', $vars);
     }
 }

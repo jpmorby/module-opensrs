@@ -1369,7 +1369,7 @@ class Opensrs extends RegistrarModule
         // Load the helpers required for this view
         Loader::loadHelpers($this, ['Form', 'Html']);
 
-        $row = $this->getModuleRowOrFail($package->module_row);
+        $row = $this->getModuleRow($package->module_row);
         if (!$row) {
             return '';
         }
@@ -1377,66 +1377,67 @@ class Opensrs extends RegistrarModule
 
         $vars = new stdClass();
         $fields = $this->serviceFieldsToObject($service->fields);
-        $dns = new OpensrsDomainsDns($api);
+        $forwarding = new OpensrsDomainsForwarding($api);
 
         if (!empty($post)) {
             if (isset($post['action'])) {
                 if ($post['action'] == 'set_forwarding') {
-                    // Build URL forwarding record via DNS A/CNAME + URL forwarding
-                    $zone_response = $dns->getDnsZone(['domain' => $fields->domain]);
-                    $this->processResponse($api, $zone_response);
+                    $info_response = $forwarding->getDomainForwarding(['domain' => $fields->domain]);
+                    $this->logRequest($api, $info_response);
 
-                    if ($zone_response->status() == 'OK') {
-                        $zone = $zone_response->response();
-                        $records = $zone->attributes['records'] ?? [];
-
-                        // Add forwarding record
-                        if (!isset($records['url_forwarding']) || !is_array($records['url_forwarding'])) {
-                            $records['url_forwarding'] = [];
-                        }
-                        $records['url_forwarding'][] = [
-                            'subdomain' => $post['subdomain'] ?? '@',
-                            'ip_address' => $post['destination'] ?? '',
-                            'type' => $post['redirect_type'] ?? '301'
-                        ];
-
-                        $response = $dns->setDnsZone([
-                            'domain' => $fields->domain,
-                            'records' => $records
-                        ]);
-                        $this->processResponse($api, $response);
+                    if ($info_response->status() != 'OK') {
+                        // Domain forwarding must be enabled before records can be set
+                        $create_response = $forwarding->createDomainForwarding(['domain' => $fields->domain]);
+                        $this->logRequest($api, $create_response);
+                        $existing_records = [];
+                    } else {
+                        $info = $info_response->response();
+                        $existing_records = $info->attributes['forwarding'] ?? [];
                     }
+
+                    $existing_records[] = [
+                        'subdomain' => $post['subdomain'] ?? '@',
+                        'destination_url' => $post['destination_url'] ?? '',
+                        'enabled' => isset($post['enabled']) ? 1 : 0,
+                        'masked' => isset($post['masked']) ? 1 : 0
+                    ];
+
+                    $response = $forwarding->setDomainForwarding([
+                        'domain' => $fields->domain,
+                        'forwarding' => $existing_records
+                    ]);
+                    $this->processResponse($api, $response);
                 } elseif ($post['action'] == 'delete_forwarding') {
-                    $zone_response = $dns->getDnsZone(['domain' => $fields->domain]);
-                    $this->processResponse($api, $zone_response);
-
-                    if ($zone_response->status() == 'OK') {
-                        $zone = $zone_response->response();
-                        $records = $zone->attributes['records'] ?? [];
-
-                        $delete_index = (int)($post['record_index'] ?? -1);
-                        if (isset($records['url_forwarding'][$delete_index])) {
-                            unset($records['url_forwarding'][$delete_index]);
-                            $records['url_forwarding'] = array_values($records['url_forwarding']);
-                        }
-
-                        $response = $dns->setDnsZone([
-                            'domain' => $fields->domain,
-                            'records' => $records
-                        ]);
-                        $this->processResponse($api, $response);
+                    $info_response = $forwarding->getDomainForwarding(['domain' => $fields->domain]);
+                    $this->logRequest($api, $info_response);
+                    $existing_records = [];
+                    if ($info_response->status() == 'OK') {
+                        $info = $info_response->response();
+                        $existing_records = $info->attributes['forwarding'] ?? [];
                     }
+
+                    $delete_index = (int)($post['record_index'] ?? -1);
+                    if (isset($existing_records[$delete_index])) {
+                        unset($existing_records[$delete_index]);
+                        $existing_records = array_values($existing_records);
+                    }
+
+                    $response = $forwarding->setDomainForwarding([
+                        'domain' => $fields->domain,
+                        'forwarding' => $existing_records
+                    ]);
+                    $this->processResponse($api, $response);
                 }
             }
         }
 
         // Fetch current forwarding records
         $forwarding_records = [];
-        $zone_response = $dns->getDnsZone(['domain' => $fields->domain]);
-        $this->logRequest($api, $zone_response);
-        if ($zone_response->status() == 'OK') {
-            $zone = $zone_response->response();
-            $raw_records = $zone->attributes['records']['url_forwarding'] ?? [];
+        $info_response = $forwarding->getDomainForwarding(['domain' => $fields->domain]);
+        $this->logRequest($api, $info_response);
+        if ($info_response->status() == 'OK') {
+            $info = $info_response->response();
+            $raw_records = $info->attributes['forwarding'] ?? [];
             foreach ($raw_records as $index => $record) {
                 if (is_array($record)) {
                     $record['record_index'] = $index;
@@ -1447,11 +1448,6 @@ class Opensrs extends RegistrarModule
 
         $this->view->set('forwarding_records', $forwarding_records);
         $this->view->set('vars', $vars);
-        $this->view->set('redirect_types', [
-            '301' => Language::_('Opensrs.tab_url_forwarding.redirect_301', true),
-            '302' => Language::_('Opensrs.tab_url_forwarding.redirect_302', true),
-            'frame' => Language::_('Opensrs.tab_url_forwarding.redirect_frame', true)
-        ]);
         $this->view->setDefaultView('components' . DS . 'modules' . DS . 'opensrs' . DS);
 
         return $this->view->fetch();
