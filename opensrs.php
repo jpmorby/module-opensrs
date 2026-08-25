@@ -1358,7 +1358,7 @@ class Opensrs extends RegistrarModule
         // Load the helpers required for this view
         Loader::loadHelpers($this, ['Form', 'Html']);
 
-        $row = $this->getModuleRowOrFail($package->module_row);
+        $row = $this->getModuleRow($package->module_row);
         if (!$row) {
             return '';
         }
@@ -1437,20 +1437,18 @@ class Opensrs extends RegistrarModule
         $this->view->set('ds_records', $ds_records);
         $this->view->set('vars', $vars);
         $this->view->set('algorithms', [
-            '3' => '3 - DSA/SHA-1',
             '5' => '5 - RSA/SHA-1',
             '6' => '6 - DSA-NSEC3-SHA1',
             '7' => '7 - RSASHA1-NSEC3-SHA1',
             '8' => '8 - RSA/SHA-256',
             '10' => '10 - RSA/SHA-512',
-            '13' => '13 - ECDSA/SHA-256',
-            '14' => '14 - ECDSA/SHA-384',
-            '15' => '15 - Ed25519',
-            '16' => '16 - Ed448'
+            '253' => '253 - Private algorithm',
+            '254' => '254 - Private algorithm OID'
         ]);
         $this->view->set('digest_types', [
             '1' => '1 - SHA-1',
             '2' => '2 - SHA-256',
+            '3' => '3 - GOST R 34.11-94',
             '4' => '4 - SHA-384'
         ]);
         $this->view->setDefaultView('components' . DS . 'modules' . DS . 'opensrs' . DS);

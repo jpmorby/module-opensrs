@@ -66,7 +66,7 @@
                 $this->Form->fieldSelect(
                     'algorithm',
                     ($algorithms ?? []),
-                    ($vars->algorithm ?? '13'),
+                    ($vars->algorithm ?? '8'),
                     ['id' => 'algorithm', 'class' => 'form-control'],
                 );
                 ?>
