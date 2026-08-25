@@ -557,7 +557,34 @@ class Opensrs extends RegistrarModule
      */
     public function suspendService($package, $service, $parent_package = null, $parent_service = null)
     {
-        return $this->cancelService($package, $service, $parent_package, $parent_service);
+        $row = $this->getModuleRowOrFail($package->module_row);
+        if (!$row) {
+            return null;
+        }
+        $api = $this->getApi($row->meta->user, $row->meta->key, $row->meta->sandbox == 'true');
+
+        $fields = $this->serviceFieldsToObject($service->fields);
+
+        // Preserve the domain's current auto-renew state so it can be restored on unsuspend,
+        // rather than always reversing back to auto-renew when the service is unsuspended
+        $domain_info = $this->getDomainInfo($fields->domain, $package->module_row);
+        $auto_renew = isset($domain_info['auto_renew']) ? (string)$domain_info['auto_renew'] : '1';
+        $let_expire = isset($domain_info['let_expire']) ? (string)$domain_info['let_expire'] : '0';
+
+        $domains_provisioning = new OpensrsDomainsProvisioning($api);
+        $response = $domains_provisioning->modify([
+            'domain' => $fields->domain,
+            'data' => 'expire_action',
+            'affect_domains' => '0',
+            'auto_renew' => '0',
+            'let_expire' => '1'
+        ]);
+        $this->processResponse($api, $response);
+
+        return [
+            ['key' => 'auto_renew', 'value' => $auto_renew, 'encrypted' => 0],
+            ['key' => 'let_expire', 'value' => $let_expire, 'encrypted' => 0]
+        ];
     }
 
     /**
@@ -588,13 +615,18 @@ class Opensrs extends RegistrarModule
 
         $fields = $this->serviceFieldsToObject($service->fields);
 
+        // Restore whatever auto-renew state was in effect before the domain was suspended
+        // (saved by suspendService), instead of unconditionally forcing renewal back on
+        $auto_renew = $fields->auto_renew ?? '1';
+        $let_expire = $fields->let_expire ?? '0';
+
         $domains_provisioning = new OpensrsDomainsProvisioning($api);
         $response = $domains_provisioning->modify([
             'domain' => $fields->domain,
             'data' => 'expire_action',
             'affect_domains' => '0',
-            'auto_renew' => '1',
-            'let_expire' => '0'
+            'auto_renew' => $auto_renew,
+            'let_expire' => $let_expire
         ]);
         $this->processResponse($api, $response);
 
