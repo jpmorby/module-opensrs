@@ -566,10 +566,13 @@ class Opensrs extends RegistrarModule
         $fields = $this->serviceFieldsToObject($service->fields);
 
         // Preserve the domain's current auto-renew state so it can be restored on unsuspend,
-        // rather than always reversing back to auto-renew when the service is unsuspended
+        // rather than always reversing back to auto-renew when the service is unsuspended.
+        // If the lookup fails, the true prior state is unknown - don't record a guessed value,
+        // since a wrong guess could later force an unwanted renewal back on (see unsuspendService()).
         $domain_info = $this->getDomainInfo($fields->domain, $package->module_row);
-        $auto_renew = isset($domain_info['auto_renew']) ? (string)$domain_info['auto_renew'] : '1';
-        $let_expire = isset($domain_info['let_expire']) ? (string)$domain_info['let_expire'] : '0';
+        $known_state = isset($domain_info['auto_renew']) && isset($domain_info['let_expire']);
+        $auto_renew = $known_state ? (string)$domain_info['auto_renew'] : null;
+        $let_expire = $known_state ? (string)$domain_info['let_expire'] : null;
 
         $domains_provisioning = new OpensrsDomainsProvisioning($api);
         $response = $domains_provisioning->modify([
@@ -580,6 +583,10 @@ class Opensrs extends RegistrarModule
             'let_expire' => '1'
         ]);
         $this->processResponse($api, $response);
+
+        if (!$known_state) {
+            return null;
+        }
 
         return [
             ['key' => 'auto_renew', 'value' => $auto_renew, 'encrypted' => 0],
@@ -616,17 +623,22 @@ class Opensrs extends RegistrarModule
         $fields = $this->serviceFieldsToObject($service->fields);
 
         // Restore whatever auto-renew state was in effect before the domain was suspended
-        // (saved by suspendService), instead of unconditionally forcing renewal back on
-        $auto_renew = $fields->auto_renew ?? '1';
-        $let_expire = $fields->let_expire ?? '0';
+        // (saved by suspendService), instead of unconditionally forcing renewal back on.
+        // If no prior state was recorded - either the lookup failed at suspend time, or this
+        // service was suspended before this fix existed - leave expire_action untouched rather
+        // than guessing, since a wrong guess could force an unwanted renewal on a domain the
+        // customer had deliberately set not to renew.
+        if (!isset($fields->auto_renew) || !isset($fields->let_expire)) {
+            return null;
+        }
 
         $domains_provisioning = new OpensrsDomainsProvisioning($api);
         $response = $domains_provisioning->modify([
             'domain' => $fields->domain,
             'data' => 'expire_action',
             'affect_domains' => '0',
-            'auto_renew' => $auto_renew,
-            'let_expire' => $let_expire
+            'auto_renew' => $fields->auto_renew,
+            'let_expire' => $fields->let_expire
         ]);
         $this->processResponse($api, $response);
 
